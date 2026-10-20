@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:newsdb
+  jpa:
+    hibernate.ddl-auto: create-drop
+    open-in-view: false
+    show-sql: true
+  h2.console.enabled: true
