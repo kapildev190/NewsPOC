@@ -1,8 +1,12 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:newsdb
+    url: jdbc:postgresql://localhost:5432/newsdb
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
   jpa:
-    hibernate.ddl-auto: create-drop
+    hibernate.ddl-auto: update
     open-in-view: false
     show-sql: true
-  h2.console.enabled: true
+    properties:
+      hibernate.format_sql: true
+  #h2.console.enabled: true
