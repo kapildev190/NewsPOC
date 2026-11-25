@@ -11,14 +11,33 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/admin/users")
 public class AdminUserController {
     private final UserService service;
-    public AdminUserController(UserService service) { this.service = service; }
+    public AdminUserController(UserService service) { 
+        this.service = service; 
+    }
 
     @PostMapping @ResponseStatus(HttpStatus.CREATED)
-    public UserResponse create(@Valid @RequestBody CreateUserRequest r) { return service.create(r); }
+    public UserResponse create(@Valid @RequestBody CreateUserRequest r) { 
+        return service.create(r); 
+    }
 
     @GetMapping
-    public List<UserResponse> list() { return service.list(); }
+    public List<UserResponse> list() { 
+        return service.list(); 
+    }
 
     @DeleteMapping("/{id}") @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) { service.delete(id); }
+    public void delete(@PathVariable Long id) { 
+        service.delete(id); 
+    }
+
+    @GetMapping("/disabled")
+    public List<UserResponse> disabled() { 
+        return service.listDisabled(); 
+    }
+
+    @PatchMapping("/{id}/restore")
+    public UserResponse restore(@PathVariable Long id) {
+        return service.restore(id); 
+    }
+    
 }

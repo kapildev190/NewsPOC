@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/editor/articles")
 public class EditorArticleController {
     private final ArticleService service;
-    public EditorArticleController(ArticleService service) { this.service = service; }
+    public EditorArticleController(ArticleService service) { 
+        this.service = service; 
+    }
 
     @GetMapping("/pending")
     public Page<ArticleResponse> pending(
@@ -28,5 +30,15 @@ public class EditorArticleController {
     @PostMapping("/{id}/reject")
     public ArticleResponse reject(Authentication auth, @PathVariable Long id, @Valid @RequestBody RejectRequest r) {
         return service.reject(auth.getName(), id, r.comment());
+    }
+
+    @PostMapping("/{id}/archive")
+    public ArticleResponse archive(@PathVariable Long id) { 
+        return service.archive(id); 
+    }
+
+    @PostMapping("/bulk-approve")
+    public BulkApproveResponse bulkApprove(Authentication auth, @Valid @RequestBody BulkApproveRequest r) {
+        return service.approveAll(auth.getName(), r.ids());
     }
 }

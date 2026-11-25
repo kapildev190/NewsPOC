@@ -20,10 +20,11 @@ public class AppUser extends BaseEntity {
         this.username = username; this.password = password; this.fullName = fullName; this.role = role;
     }
     public void disable() { this.enabled = false; }   // soft delete
-
+                                   
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getFullName() { return fullName; }
     public Role getRole() { return role; }
     public boolean isEnabled() { return enabled; }
+    public void enable() { this.enabled = true; }
 }

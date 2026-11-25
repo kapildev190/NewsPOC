@@ -32,4 +32,16 @@ public class UserService {
         if (u.getRole() == Role.ADMIN) throw new IllegalStateException("Admin cannot be deleted");
         u.disable();
     }
+
+    @Transactional(readOnly = true)
+public List<UserResponse> listDisabled() {
+    return repo.findByEnabledFalse().stream().map(UserResponse::of).toList();
+}
+
+    @Transactional
+    public UserResponse restore(Long id) {
+        AppUser u = repo.findById(id).orElseThrow(() -> new NotFoundException("User " + id));
+        u.enable();                         
+        return UserResponse.of(u);
+    }
 }

@@ -23,4 +23,10 @@ public class PublicArticleController {
 
     @GetMapping("/{id}")
     public PublicArticleResponse get(@PathVariable Long id) { return service.publishedById(id); }
+
+    @GetMapping("/search")
+    public Page<PublicArticleResponse> search(@RequestParam String title,
+            @PageableDefault(size = 10, sort = "publishedAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        return service.search(title, pageable);
+    }
 }
