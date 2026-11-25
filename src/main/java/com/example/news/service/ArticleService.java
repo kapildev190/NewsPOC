@@ -3,16 +3,25 @@ package com.example.news.service;
 import com.example.news.dto.Dtos.*;
 import com.example.news.entity.*;
 import com.example.news.repo.*;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class ArticleService {
     private final ArticleRepository articles;
     private final UserRepository users;
-    public ArticleService(ArticleRepository articles, UserRepository users) { this.articles = articles; this.users = users; }
+    private final ApplicationEventPublisher events;
+
+    public ArticleService(ArticleRepository articles, UserRepository users,ApplicationEventPublisher events) { this.articles = articles; this.users = users; this.events = events; }
 
     // ---------------- journalist ----------------
     @Transactional
@@ -50,7 +59,33 @@ public class ArticleService {
     public ArticleResponse approve(String editorUsername, Long id) {
         Article a = find(id);
         a.approve(editor(editorUsername));
+        events.publishEvent(new ArticleApprovedEvent(
+                a.getId(), a.getAuthor().getUsername(), a.getTitle()));
         return ArticleResponse.of(a);
+    }
+
+    @Transactional
+    public BulkApproveResponse approveAll(String editorUsername, List<Long> ids) {
+        AppUser editor = findUser(editorUsername);
+        Map<Long, Article> found = articles.findAllById(ids).stream()
+                .collect(Collectors.toMap(Article::getId, a -> a));
+
+        List<Long> approved = new ArrayList<>();
+        List<Long> skipped = new ArrayList<>();
+        for (Long id : ids) {
+            Article a = found.get(id);
+            if (a != null && a.getStatus() == ArticleStatus.PENDING_REVIEW) {
+                a.approve(editor);
+                approved.add(id);
+            } else {
+                skipped.add(id);
+            }
+        }
+        return new BulkApproveResponse(approved, skipped);
+    }
+
+    private AppUser findUser(String editorUsername) {
+        return users.findByUsername(editorUsername).orElseThrow(() -> new NotFoundException("User"));
     }
 
     @Transactional
@@ -81,4 +116,31 @@ public class ArticleService {
     }
     private Article find(Long id) { return articles.findById(id).orElseThrow(() -> new NotFoundException("Article " + id)); }
     private AppUser editor(String username) { return users.findByUsername(username).orElseThrow(() -> new NotFoundException("User")); }
+
+
+    @Transactional(readOnly = true)
+    public Page<PublicArticleResponse> search(String title, Pageable pageable) {
+        return articles.findByStatusAndTitleContainingIgnoreCase(ArticleStatus.APPROVED, title, pageable)
+                .map(PublicArticleResponse::of);
+    }
+
+    @Transactional(readOnly = true)
+    public Map<ArticleStatus, Long> stats(String username) {
+        Map<ArticleStatus, Long> result = new EnumMap<>(ArticleStatus.class);
+        for (ArticleStatus s : ArticleStatus.values()) result.put(s, 0L);   // zero defaults
+        articles.countByStatus(username).forEach(c -> result.put(c.getStatus(), c.getTotal()));
+        return result;
+    }
+
+    private Article findArticle(Long id) {
+        return articles.findById(id)
+                .orElseThrow(() -> new NotFoundException("Article " + id));
+    }
+
+    @Transactional
+    public ArticleResponse archive(Long id) {
+        Article a = findArticle(id);
+        a.archive();
+        return ArticleResponse.of(a);
+    }
 }

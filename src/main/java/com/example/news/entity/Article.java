@@ -59,6 +59,12 @@ public class Article extends BaseEntity {
             throw new IllegalStateException("Only PENDING_REVIEW articles can be reviewed (current: " + status + ")");
     }
 
+    public void archive() {
+        if (status != APPROVED)
+            throw new IllegalStateException("Only APPROVED articles can be archived (current: " + status + ")");
+        status = ARCHIVED;
+    }
+
     public String getTitle() { return title; }
     public String getSummary() { return summary; }
     public String getContent() { return content; }
@@ -67,4 +73,5 @@ public class Article extends BaseEntity {
     public ArticleStatus getStatus() { return status; }
     public String getReviewComment() { return reviewComment; }
     public Instant getPublishedAt() { return publishedAt; }
+    public AppUser getReviewer() { return reviewer; }
 }

@@ -1,12 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/newsdb
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/newsdb}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD:Pg@admin456}
   jpa:
     hibernate.ddl-auto: update
     open-in-view: false
     show-sql: true
-    properties:
-      hibernate.format_sql: true
-  #h2.console.enabled: true
